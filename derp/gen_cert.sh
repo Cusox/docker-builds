@@ -19,14 +19,14 @@ openssl req -new \
 	-key "$CERT_DIR/$DERP_HOST.key" \
 	-out "$CERT_DIR/$DERP_HOST.csr" \
 	-subj "/CN=$DERP_HOST" \
-	-addext "subjectAltName=DNS:${DERP_HOST}"
+	-addext "subjectAltName=IP:${DERP_HOST}"
 
 openssl x509 -req \
 	-days 36500 \
 	-in "$CERT_DIR/$DERP_HOST.csr" \
 	-signkey "$CERT_DIR/$DERP_HOST.key" \
 	-out "$CERT_DIR/$DERP_HOST.crt" \
-	-extfile <(printf "subjectAltName=DNS:${DERP_HOST}")
+	-extfile <(printf "subjectAltName=IP:${DERP_HOST}")
 
 echo "Certificate and key generated at $CERT_DIR/$DERP_HOST.crt and $CERT_DIR/$DERP_HOST.key"
 
