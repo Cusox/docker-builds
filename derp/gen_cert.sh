@@ -1,33 +1,32 @@
 #!/bin/bash
 
-set -e
+CERT_HOST=$1
+CERT_DIR=$2
+CONF_FILE=$3
 
-CERT_DIR="./certs"
-DERP_HOST=${1:="derp.local"}
+echo "[req]
+default_bits  = 2048
+distinguished_name = req_distinguished_name
+req_extensions = req_ext
+x509_extensions = v3_req
+prompt = no
 
-echo "Generating self-signed certificate..."
+[req_distinguished_name]
+countryName = XX
+stateOrProvinceName = N/A
+localityName = N/A
+organizationName = Self-signed certificate
+commonName = $CERT_HOST: Self-signed certificate
 
-if [ ! -d "$CERT_DIR" ]; then
-    mkdir -p "$CERT_DIR"
-fi
+[req_ext]
+subjectAltName = @alt_names
 
-echo "Generating private key..."
+[v3_req]
+subjectAltName = @alt_names
 
-openssl genrsa -out "$CERT_DIR/$DERP_HOST.key" 2048
+[alt_names]
+IP.1 = $CERT_HOST
+" > "$CONF_FILE"
 
-openssl req -new \
-	-key "$CERT_DIR/$DERP_HOST.key" \
-	-out "$CERT_DIR/$DERP_HOST.csr" \
-	-subj "/CN=$DERP_HOST" \
-	-addext "subjectAltName=IP:${DERP_HOST}"
-
-openssl x509 -req \
-	-days 36500 \
-	-in "$CERT_DIR/$DERP_HOST.csr" \
-	-signkey "$CERT_DIR/$DERP_HOST.key" \
-	-out "$CERT_DIR/$DERP_HOST.crt" \
-	-extfile <(printf "subjectAltName=IP:${DERP_HOST}")
-
-echo "Certificate and key generated at $CERT_DIR/$DERP_HOST.crt and $CERT_DIR/$DERP_HOST.key"
-
-echo "Done."
+mkdir -p "$CERT_DIR"
+openssl req -x509 -nodes -days 730 -newkey rsa:2048 -keyout "$CERT_DIR/$CERT_HOST.key" -out "$CERT_DIR/$CERT_HOST.crt" -config "$CONF_FILE"
